@@ -95,14 +95,14 @@ export default function WishlistPage() {
                         Start exploring and save your favorite items for later!
                     </p>
                     
-                    <Link href="/">
+                <Link href="/">
                         <Button className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                             <Package className="mr-2 w-5 h-5" />
                             Explore Products
                             <ArrowRight className="ml-2 w-5 h-5" />
                         </Button>
-                    </Link>
-                </div>
+                </Link>
+            </div>
             </div>
         );
     }
@@ -258,7 +258,7 @@ export default function WishlistPage() {
                                                 <TrendingUp className="w-4 h-4" />
                                                 <span>In Stock</span>
                                             </div>
-                                        </div>
+                        </div>
                                         
                                         {/* Actions */}
                                         <div className="flex gap-2">
@@ -277,9 +277,9 @@ export default function WishlistPage() {
                                             >
                                                 <X className="w-4 h-4" />
                                             </Button>
-                                        </div>
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
+                    </div>
                             );
                         } else {
                             // List View
@@ -366,8 +366,8 @@ export default function WishlistPage() {
                                                 </Button>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
+            </div>
+        </div>
                             );
                         }
                     })}

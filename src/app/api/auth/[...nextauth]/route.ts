@@ -84,7 +84,7 @@ export const options: NextAuthOptions = {
         user: token.user || session.user,
         token: token.token
       };
-    }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
