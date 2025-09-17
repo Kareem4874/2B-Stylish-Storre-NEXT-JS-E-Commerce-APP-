@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions, User } from "next-auth";
+import NextAuth, { NextAuthOptions, Session, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { JWT } from "next-auth/jwt";
 
@@ -69,24 +69,20 @@ export const options: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }: { token: JWT; user?: ExtendedUser | undefined }) {
       if (user) {
-        // Merge user data into token
         return {
           ...token,
           user: user.user || user,
-          token: user.token
+          token: user.token,
         };
       }
       return token;
     },
-    async sessions({ session, token }: { session: { user: any; token?: string }; token: ExtendedToken }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       return {
         ...session,
-        user: token.user || session.user,
-        token: token.token
+        user: (token as any).user || session.user,
+        token: (token as any).token,
       };
-    },
-    async redirect({ url, baseUrl }) {
-      return "/";
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
