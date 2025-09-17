@@ -8,6 +8,10 @@ type WishlistItem = {
     title?: string;
     imageCover?: string;
     price?: number;
+    product?: {
+        _id: string;
+    };
+    id?: string;
 };
 
 type WishlistContextValue = {
@@ -60,8 +64,8 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
         // Update state immediately for instant UI feedback
         setItems(prevItems => prevItems.filter((item: WishlistItem) => 
             (item._id !== productId) && 
-            (item?.product?._id !== productId) &&
-            (item?.id !== productId)
+            (item?.product?._id  !== productId) &&
+            (item?.id  !== productId)
         ));
         
         // Remove from server in background
@@ -75,7 +79,7 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
     }, [load]);
 
     const has = useCallback((productId: string) => {
-        return items.some((p: WishlistItem) => (p._id === productId) || (p?.id === productId) || (p?._id === productId) || (p?.product?._id === productId));
+        return items.some((p: WishlistItem) => (p._id === productId) || (p?.id === productId) || (p?._id === productId) || (p?.product?._id  === productId));
     }, [items]);
 
     const value = useMemo<WishlistContextValue>(() => ({
