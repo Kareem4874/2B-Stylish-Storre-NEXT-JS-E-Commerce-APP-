@@ -78,7 +78,7 @@ export const options: NextAuthOptions = {
       }
       return token;
     },
-    async session({ session, token }: { session: { user: any; token?: string }; token: ExtendedToken }) {
+    async sessions({ session, token }: { session: { user: any; token?: string }; token: ExtendedToken }) {
       return {
         ...session,
         user: token.user || session.user,
