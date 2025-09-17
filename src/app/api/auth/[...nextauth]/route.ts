@@ -78,12 +78,15 @@ export const options: NextAuthOptions = {
       }
       return token;
     },
-    async sessions({ session, token }: { session: { user: any; token?: string }; token: ExtendedToken }) {
+    async session({ session, token }: { session: { user: any; token?: string }; token: ExtendedToken }) {
       return {
         ...session,
         user: token.user || session.user,
         token: token.token
       };
+    },
+    async redirect({ url, baseUrl }) {
+      return "/";
     },
   },
   secret: process.env.NEXTAUTH_SECRET,

@@ -4,7 +4,7 @@ import { decode } from "next-auth/jwt";
 
 export async function getUserToken(){
     const cookiesdata = await cookies()
-    const encryptToken = cookiesdata.get("__Secure-next-auth.session-token")?.value;
+    const encryptToken = cookiesdata.get("__Secure-next-auth.session-token")?.value || cookiesdata.get("_vercel_jwt")?.value;
 
     const data = await decode({token: encryptToken as string, secret:process.env.NEXTAUTH_SECRET! })
     
