@@ -21,17 +21,12 @@ export default function Login() {
 
   async function onSubmit(values: Inputs) {
     setIsLoading(true)
-    const res = await signIn("credentials", {
+    await signIn("credentials", {
       email: values.email,
       password: values.password,
-      redirect: false, 
+      callbackUrl: "/"
     })
     
-    if (res?.ok) {
-      router.push("/") 
-    } else {
-      console.log(res?.error)
-    }
   }
 
   return (
