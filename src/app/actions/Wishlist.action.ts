@@ -62,7 +62,7 @@ export async function removeProductFromWishlist(productId: string) {
         return {
             data: [],
             status: 500,
-            message: "Failed to remove product from wishlist",
+            message: "Failed to remove product from wishlist Should Sign in first"
         };
     }
 }

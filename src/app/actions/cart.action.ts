@@ -44,7 +44,7 @@ export async function addProductToCart(productId: string) {
         return {
             data: [],
             status: 500,
-            message: "Failed to add product to cart",
+            message: "Failed to add product to cart Should To Sign in first",
         };
     }
 }
