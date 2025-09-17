@@ -260,7 +260,7 @@ export default function CheckoutPage() {
                     {shipping === 0 ? 'FREE' : `EGP ${Number(shipping).toFixed(2)}`}
                   </span>
                 </div>
-              </div>ىح
+              </div>
 
               <div className="flex justify-between text-lg font-semibold mt-4 mb-6">
                 <span>Total</span>
