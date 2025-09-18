@@ -1,51 +1,75 @@
 import { NextResponse, NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-    // Check for all possible token locations
-    const token =
-        request.cookies.get("__Secure-next-auth.session-token")?.value ||
-        request.cookies.get("next-auth.session-token")?.value ||
-        request.cookies.get("_vercel_jwt")?.value
+// Public pages that don't require authentication
+const publicPages = ['/Login', '/Register']
 
-    // Get the path from the URL
+export async function middleware(request: NextRequest) {
     const path = request.nextUrl.pathname
-
-    // If we're already on the login page and have a token, redirect to home
-    if (path === '/Login' && token) {
-        return NextResponse.redirect(new URL('/', request.url))
+    
+    // If it's a public page, allow access
+    if (publicPages.some(page => path.startsWith(page))) {
+        return NextResponse.next()
     }
 
-    // If we don't have a token and we're not on the login or register page, redirect to login
-    if (!token && !['/Login', '/Register'].includes(path)) {
+    // Check all possible token locations
+    const hasToken = request.cookies.has("__Secure-next-auth.session-token") ||
+                    request.cookies.has("next-auth.session-token") ||
+                    request.cookies.has("_vercel_jwt")
+
+    // For all protected routes, verify token exists
+    if (!hasToken) {
+        // Create response with redirect
         const response = NextResponse.redirect(new URL('/Login', request.url))
         
-        // Clear any existing auth cookies to ensure clean state
-        response.cookies.delete('next-auth.session-token')
-        response.cookies.delete('__Secure-next-auth.session-token')
-        response.cookies.delete('_vercel_jwt')
+        // Ensure all auth cookies are cleared
+        const cookiesToClear = [
+            'next-auth.session-token',
+            '__Secure-next-auth.session-token',
+            '_vercel_jwt',
+        ]
+        
+        cookiesToClear.forEach(cookieName => {
+            // Delete cookie with default options
+            response.cookies.delete(cookieName)
+            
+            // Delete cookie with root path
+            response.cookies.set(cookieName, '', { 
+                path: '/',
+                expires: new Date(0),
+                maxAge: 0
+            })
+        })
+
+        // Set Cache-Control header to prevent caching
+        response.headers.set(
+            'Cache-Control',
+            'no-store, no-cache, must-revalidate, proxy-revalidate'
+        )
+        response.headers.set('Pragma', 'no-cache')
+        response.headers.set('Expires', '0')
         
         return response
     }
 
-    return NextResponse.next()
+    const response = NextResponse.next()
+    
+    // Add cache control headers to prevent caching of protected routes
+    response.headers.set(
+        'Cache-Control',
+        'no-store, no-cache, must-revalidate, proxy-revalidate'
+    )
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    
+    return response
 }
 export const config = {
     matcher: [
-        '/',
-        '/products/:path*',
-        '/Products/:path*',
-        '/brands/:path*',
-        '/Brands/:path*',
-        '/categories/:path*',
-        '/Categories/:path*',
-        '/cart/:path*',
-        '/Cart/:path*',
-        '/wishlist/:path*',
-        '/Wishlist/:path*',
-        '/checkout/:path*',
-        '/allorders/:path*',
-        '/Login',  // Add login to handle redirect when already logged in
-    ],
+        // Match all paths
+        '/:path*',
+        // But exclude public paths like static files, api routes, etc
+        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    ]
 }
 
 
