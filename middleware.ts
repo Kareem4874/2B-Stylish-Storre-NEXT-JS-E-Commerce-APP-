@@ -66,6 +66,28 @@ export async function middleware(request: NextRequest) {
         return addSecurityHeaders(response)
     }
 
+    // Special check for home and wishlist paths
+    if (path === '/' || path.toLowerCase().includes('wishlist')) {
+        try {
+            const token = await getToken({ 
+                req: request,
+                secret: process.env.NEXTAUTH_SECRET
+            })
+            
+            if (!token) {
+                const response = NextResponse.redirect(new URL('/Login', request.url))
+                clearAuthCookies(response)
+                addSecurityHeaders(response)
+                return response
+            }
+        } catch (error) {
+            const response = NextResponse.redirect(new URL('/Login', request.url))
+            clearAuthCookies(response)
+            addSecurityHeaders(response)
+            return response
+        }
+    }
+
     try {
         // Verify JWT token
         const token = await getToken({ 
@@ -96,7 +118,21 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        // Match all paths except static files and api
+        // Protected routes that require authentication
+        '/',
+        '/wishlist',
+        '/Wishlist',
+        '/cart',
+        '/Cart',
+        '/products',
+        '/Products',
+        '/categories',
+        '/Categories',
+        '/brands',
+        '/Brands',
+        '/checkout',
+        '/allorders',
+        // Catch-all for any other routes
         '/((?!api|_next/static|_next/image|favicon.ico|public/|assets/).*)'
     ]
 }
