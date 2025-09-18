@@ -12,14 +12,14 @@ if (!token) {
 
 return NextResponse.next()
 }
-
 export const config = {
-matcher: [
+    matcher: [
     "/",
-    "/Products/:path*",
-    "/Brands/:path*",
-    "/Categories/:path*",
-    "/Cart/:path*",
-    "/Wishlist/:path*",
-],
+    "/products/:path*",
+    "/brands/:path*",
+    "/categories/:path*",
+    "/cart/:path*",
+    "/wishlist/:path*",
+    ],
 }
+
