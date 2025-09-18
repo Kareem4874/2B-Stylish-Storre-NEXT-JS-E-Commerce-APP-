@@ -1,58 +1,102 @@
 import { NextResponse, NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
 // Public pages that don't require authentication
 const publicPages = ['/Login', '/Register']
 
-export function middleware(request: NextRequest) {
-  const path = request.nextUrl.pathname
+// Static files and API routes that should be accessible without auth
+const publicPatterns = [
+    '/api/',
+    '/_next/',
+    '/favicon.ico',
+    '/public/',
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.gif',
+    '.svg',
+]
 
-  // If it's a public page, allow access
-  if (publicPages.some(page => path.startsWith(page))) {
-    return NextResponse.next()
-  }
-
-  // Check all possible token locations
-  const hasToken =
-    request.cookies.has('__Secure-next-auth.session-token') ||
-    request.cookies.has('next-auth.session-token') ||
-    request.cookies.has('_vercel_jwt')
-
-  if (!hasToken) {
-    const response = NextResponse.redirect(new URL('/Login', request.url))
-
-    // Clear possible auth cookies
-    ;['next-auth.session-token', '__Secure-next-auth.session-token', '_vercel_jwt'].forEach(
-    cookieName => {
-        response.cookies.delete(cookieName)
-        response.cookies.set(cookieName, '', {
-        path: '/',
-        expires: new Date(0),
-        maxAge: 0,
-        })
-    }
-    )
-
-    response.headers.set(
-    'Cache-Control',
-    'no-store, no-cache, must-revalidate, proxy-revalidate'
-    )
+function addSecurityHeaders(response: NextResponse) {
+    response.headers.set('Cache-Control', 'private, no-cache, no-store, must-revalidate, max-age=0')
     response.headers.set('Pragma', 'no-cache')
-    response.headers.set('Expires', '0')
-
+    response.headers.set('Expires', '-1')
+    response.headers.set('X-Content-Type-Options', 'nosniff')
     return response
 }
 
-const response = NextResponse.next()
-response.headers.set(
-    'Cache-Control',
-    'no-store, no-cache, must-revalidate, proxy-revalidate'
-)
-response.headers.set('Pragma', 'no-cache')
-response.headers.set('Expires', '0')
+function clearAuthCookies(response: NextResponse) {
+    const cookiesToClear = [
+        'next-auth.session-token',
+        '__Secure-next-auth.session-token',
+        '_vercel_jwt',
+        'next-auth.csrf-token',
+        'next-auth.callback-url',
+        '__Secure-next-auth.callback-url',
+        '__Host-next-auth.csrf-token'
+    ]
 
-return response
+    cookiesToClear.forEach(cookieName => {
+        // Delete cookie with default options
+        response.cookies.delete(cookieName)
+        
+        // Also try to delete with specific options
+        response.cookies.set(cookieName, '', {
+            path: '/',
+            expires: new Date(0),
+            maxAge: 0,
+            secure: true,
+            httpOnly: true,
+            sameSite: 'lax'
+        })
+    })
+}
+
+export async function middleware(request: NextRequest) {
+    const path = request.nextUrl.pathname
+
+    // Skip middleware for public files
+    if (publicPatterns.some(pattern => path.startsWith(pattern) || path.endsWith(pattern))) {
+        return NextResponse.next()
+    }
+
+    // Allow access to public pages
+    if (publicPages.some(page => path.startsWith(page))) {
+        const response = NextResponse.next()
+        return addSecurityHeaders(response)
+    }
+
+    try {
+        // Verify JWT token
+        const token = await getToken({ 
+            req: request,
+            secret: process.env.NEXTAUTH_SECRET
+        })
+
+        if (!token) {
+            console.log('No token found, redirecting to login')
+            const response = NextResponse.redirect(new URL('/Login', request.url))
+            clearAuthCookies(response)
+            addSecurityHeaders(response)
+            return response
+        }
+
+        // User is authenticated, proceed but add security headers
+        const response = NextResponse.next()
+        return addSecurityHeaders(response)
+
+    } catch (error) {
+        console.error('Auth verification failed:', error)
+        const response = NextResponse.redirect(new URL('/Login', request.url))
+        clearAuthCookies(response)
+        addSecurityHeaders(response)
+        return response
+    }
 }
 
 export const config = {
-matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: [
+        // Match all paths except static files and api
+        '/((?!api|_next/static|_next/image|favicon.ico|public/|assets/).*)'
+    ]
 }
