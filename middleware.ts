@@ -14,12 +14,10 @@ return NextResponse.next()
 }
 export const config = {
     matcher: [
-    "/",
-    "/products/:path*",
-    "/brands/:path*",
-    "/categories/:path*",
-    "/cart/:path*",
-    "/wishlist/:path*",
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
     ],
 }
+
+
+
 
